@@ -1,5 +1,6 @@
 package com.salvadormorado.practica3
 
+import android.app.ProgressDialog
 import android.os.AsyncTask
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -53,6 +54,7 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
     private var progressAsyncTask: ProgressAsyncTask? = null
     private val host: String = "https://pruebapulido.000webhostapp.com/Servicios/"
     private var posicionesEnviar: String = "0,1,2,3,4,5,6,7,8"
+    private var progressDialog:ProgressDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,9 +75,13 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
         seleccionar = false
         turno = false
         juegoTerminado = false
+
+        progressDialog = ProgressDialog(this@GatoActivity)
+        progressDialog!!.setTitle("Espera por favor.")
+        progressDialog!!.setMessage("Obteniendo posición...")
+
         myCountDownTimer = MyCountDownTimer(5000, 1000)
         myCountDownTimer!!.start()
-
     }
 
     fun setListenersButtons() {
@@ -174,24 +180,21 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
             posicionesEnviar += "1,"
         if (gato[0][2] == null)
             posicionesEnviar += "2,"
-
         if (gato[1][0] == null)
             posicionesEnviar += "3,"
-
         if (gato[1][1] == null)
             posicionesEnviar += "4,"
-
         if (gato[1][2] == null)
             posicionesEnviar += "5,"
-
         if (gato[2][0] == null)
             posicionesEnviar += "6,"
-
         if (gato[2][1] == null)
             posicionesEnviar += "7,"
-
         if (gato[2][2] == null)
-            posicionesEnviar += "8"
+            posicionesEnviar += "8,"
+
+        posicionesEnviar = posicionesEnviar.substring(0, posicionesEnviar.length-1)
+        Log.e("Posiciones a enviar: ", posicionesEnviar)
     }
 
     fun setLetterButtonAuto(pos: Int) {
@@ -253,8 +256,8 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
                     }
                 }
             }
+            fillPosition()
         }
-        fillPosition()
     }
 
     fun restart() {
@@ -401,26 +404,18 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
                 contador = 0
 
                 if (turno == true) {//Turno de la máquina
-                    //setLetterButtonAuto()
-                    callAsynTask()
-                    turno = false
-                    seleccionar = false
-                    myCountDownTimer!!.start()
+                    callAsyncTask("turno jugador")
                 } else {//Turno del jugador
                     if (!seleccionar!!) {//El jugador no selecciono
-                        //setLetterButtonAuto()
-                        callAsynTask()
-                        turno = true
-                        myCountDownTimer!!.start()
-                        myCountDownTimer!!.onFinish()
+                        callAsyncTask("turno maquina")
                     }
                 }
             }
         }
 
-        fun callAsynTask() {
+        fun callAsyncTask(turn:String) {
             val json = JSONObject()
-            json.put("turno", "turno maquina")
+            json.put("turno", turn)
             json.put("posiciones", posicionesEnviar)
             progressAsyncTask = ProgressAsyncTask()
             progressAsyncTask!!.execute("POST", host + "randomGato.php", json.toString())
@@ -433,8 +428,7 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
         //Antes de ejecutar
         override fun onPreExecute() {
             super.onPreExecute()
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE)
+            progressDialog!!.show()
         }
 
         //En ejecución en segundo plano
@@ -500,10 +494,7 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
         override fun onPostExecute(result: String?) {
             super.onPostExecute(result)
 
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-
             Log.e("Resultado:", "$result")
-
 
             if (!result.isNullOrBlank() && !result.isNullOrEmpty()) {
                 val parser: Parser = Parser()
@@ -513,12 +504,27 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
                 if (json.int("succes") == 1) {
                     val jsonFinal = JSONObject(result)
                     val respuestaServer = jsonFinal.getJSONArray("respuestaServer")
-                    val turnoEnviar = respuestaServer.getJSONObject(0).getString("turnoEnviar")
+                    val turnoEnviar = respuestaServer.getJSONObject(0).getBoolean("turnoEnviar")
                     val pos = respuestaServer.getJSONObject(0).getInt("pos")
 
-                    setLetterButtonAuto(pos)
+                    if(turnoEnviar){
+                        turno = true
+                        seleccionar = true
+                        setLetterButtonAuto(pos)
 
+                        progressDialog!!.dismiss()
 
+                        myCountDownTimer!!.start()
+                        myCountDownTimer!!.onFinish()
+                    }else{
+                        turno = false
+                        seleccionar = false
+                        setLetterButtonAuto(pos)
+
+                        progressDialog!!.dismiss()
+
+                        myCountDownTimer!!.start()
+                    }
                 }
             }
         }

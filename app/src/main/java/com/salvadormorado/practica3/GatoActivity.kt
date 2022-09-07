@@ -518,6 +518,9 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
                     val turnoEnviar = respuestaServer.getJSONObject(0).getBoolean("turnoEnviar")
                     val pos = respuestaServer.getJSONObject(0).getInt("pos")
 
+                    //var pos:Int = aux.get(1).toString().toInt()
+                    Log.e("Posición", pos.toString())
+
                     if(turnoEnviar){
                         turno = true
                         seleccionar = true

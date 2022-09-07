@@ -10,6 +10,7 @@ import android.view.WindowManager
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.beust.klaxon.JsonObject
@@ -114,7 +115,6 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
             validateWinner()
             turno = true
             seleccionar = true
-            fillPosition()
             myCountDownTimer!!.onFinish()
         }
     }
@@ -193,8 +193,10 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
         if (gato[2][2] == null)
             posicionesEnviar += "8,"
 
-        posicionesEnviar = posicionesEnviar.substring(0, posicionesEnviar.length-1)
-        Log.e("Posiciones a enviar: ", posicionesEnviar)
+        if(posicionesEnviar!=""){
+            posicionesEnviar = posicionesEnviar.substring(0, posicionesEnviar.length-1)
+            Log.e("Posiciones a enviar: ", posicionesEnviar)
+        }
     }
 
     fun setLetterButtonAuto(pos: Int) {
@@ -256,7 +258,6 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
                     }
                 }
             }
-            fillPosition()
         }
     }
 
@@ -303,6 +304,8 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     fun validateWinner() {
+        fillPosition()
+
         var aux = ""
         if (contadorMovimientos >= 5) {
             //Validaciones horizontales
@@ -398,7 +401,7 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
         }
 
         override fun onFinish() {
-            if (!juegoTerminado!!) {
+            if (!juegoTerminado!! && posicionesEnviar!="") {
                 myCountDownTimer!!.cancel()
                 progressBar.progress = 100
                 contador = 0
@@ -464,8 +467,16 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
                     return data
                 } else if (httpClient.responseCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT) {
                     Log.e("ERROR:", httpClient.responseCode.toString())
+                    /*//El tiempo de espera se agoto, se hace de nuevo la petición
+                    progressDialog!!.dismiss()
+                    myCountDownTimer!!.start()
+                    myCountDownTimer!!.onFinish()*/
                 } else {
                     Log.e("ERROR:", httpClient.responseCode.toString())
+                    /*//Ocurrio un error se, hace de nuevo la petición
+                    progressDialog!!.dismiss()
+                    myCountDownTimer!!.start()
+                    myCountDownTimer!!.onFinish()*/
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -531,6 +542,10 @@ class GatoActivity : AppCompatActivity(), View.OnClickListener {
 
         override fun onCancelled() {
             super.onCancelled()
+            progressDialog!!.dismiss()
+            Toast.makeText(applicationContext, "Se ha cancelado la petición, reintentando de nuevo...", Toast.LENGTH_SHORT).show()
+            myCountDownTimer!!.start()
+            myCountDownTimer!!.onFinish()
         }
     }
 }

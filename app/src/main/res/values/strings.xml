@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Practica3</string>
+    <string name="log">Log</string>
+    <string name="snack_bar">Snack Bar</string>
+    <string name="toast">Toast</string>
+    <string name="pasar_a_gato">Pasar a gato</string>
+    <string name="ingresar_mensaje">Ingresar mensaje</string>
+    <string name="tiempo">Tiempo:</string>
+    <string name="reiniciar">Reiniciar</string>
+    <string name="empates">Empates:</string>
+    <string name="puntuacion_o">Puntuación O:</string>
+    <string name="puntuacion_total">Puntuación total:</string>
+    <string name="puntuacion_x">Puntuación X:</string>
+    <string name="espacio">" "</string>
+</resources>
